@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Header from '@/components/Header';
 import FilterBar from '@/components/FilterBar';
 import ArticleCard from '@/components/ArticleCard';
@@ -8,6 +8,9 @@ import Footer from '@/components/Footer';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import BackToTop from '@/components/BackToTop';
 import ScrollProgress from '@/components/ScrollProgress';
+import SearchBar from '@/components/SearchBar';
+import InfiniteScrollTrigger from '@/components/InfiniteScrollTrigger';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { mockArticles, sources } from '@/data/mockArticles';
 
 const Index = () => {
@@ -16,6 +19,7 @@ const Index = () => {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [activeCategory, setActiveCategory] = useState('all');
   const [activeFilter, setActiveFilter] = useState('trending');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Apply dark/light theme
   useEffect(() => {
@@ -38,13 +42,39 @@ const Index = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdated(new Date());
-    }, 30 * 1000); // 30 seconds for demo
+    }, 30 * 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Filter articles
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+        searchInput?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Filter and search articles
   const filteredArticles = useMemo(() => {
     let articles = [...mockArticles];
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      articles = articles.filter(article => 
+        article.title.toLowerCase().includes(query) ||
+        article.punchyTitle.toLowerCase().includes(query) ||
+        article.source.toLowerCase().includes(query) ||
+        article.tags.some(tag => tag.toLowerCase().includes(query)) ||
+        article.punchySummary.toLowerCase().includes(query)
+      );
+    }
 
     // Category filter
     if (activeCategory !== 'all') {
@@ -61,12 +91,30 @@ const Index = () => {
         break;
       case 'trending':
       default:
-        // Already sorted by engagement in mock data
+        // Already sorted by rank in mock data
         break;
     }
 
-    return articles;
-  }, [activeCategory, activeFilter]);
+    // Update ranks based on current sort
+    return articles.map((article, index) => ({
+      ...article,
+      rank: index + 1
+    }));
+  }, [activeCategory, activeFilter, searchQuery]);
+
+  // Infinite scroll
+  const {
+    displayedArticles,
+    loadMore,
+    hasMore,
+    isLoadingMore,
+    totalCount,
+    displayedCount
+  } = useInfiniteScroll({ articles: filteredArticles, itemsPerPage: 10 });
+
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -116,16 +164,19 @@ const Index = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="text-sm text-muted-foreground"
+              className="text-sm text-muted-foreground mb-8"
             >
               Crafted with ❤️ by <span className="font-semibold text-foreground">Mohit Singh</span> in Dubai, UAE 🇦🇪
             </motion.p>
+
+            {/* Search Bar */}
+            <SearchBar onSearch={handleSearch} />
           </motion.div>
         </div>
       </section>
 
       {/* Stats */}
-      <HeroStats articleCount={filteredArticles.length} sourceCount={sources.length} />
+      <HeroStats articleCount={totalCount} sourceCount={sources.length} />
 
       {/* Filter Bar */}
       <FilterBar
@@ -143,9 +194,18 @@ const Index = () => {
           className="mb-6 flex items-center justify-between"
         >
           <p className="text-sm text-muted-foreground">
-            Showing <span className="font-semibold text-foreground">{filteredArticles.length}</span> trending stories
+            {searchQuery ? (
+              <>
+                Found <span className="font-semibold text-foreground">{totalCount}</span> results for "{searchQuery}"
+              </>
+            ) : (
+              <>
+                Showing <span className="font-semibold text-foreground">{displayedCount}</span> of{' '}
+                <span className="font-semibold text-foreground">{totalCount}</span> trending stories
+              </>
+            )}
           </p>
-          <p className="text-xs text-muted-foreground mono">
+          <p className="text-xs text-muted-foreground mono hidden sm:block">
             Last updated: {lastUpdated.toLocaleTimeString()}
           </p>
         </motion.div>
@@ -153,30 +213,38 @@ const Index = () => {
         {isLoading ? (
           <LoadingSkeleton />
         ) : (
-          <div className="space-y-6">
-            {filteredArticles.map((article, index) => (
-              <ArticleCard key={article.id} article={article} index={index} />
-            ))}
-          </div>
-        )}
+          <>
+            <AnimatePresence mode="popLayout">
+              {displayedArticles.length > 0 ? (
+                <div className="space-y-6">
+                  {displayedArticles.map((article, index) => (
+                    <ArticleCard key={article.id} article={article} index={index} />
+                  ))}
+                </div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center py-20"
+                >
+                  <p className="text-2xl mb-2">🔍</p>
+                  <h3 className="text-xl font-semibold mb-2">No articles found</h3>
+                  <p className="text-muted-foreground">
+                    Try adjusting your search or filters
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-        {/* Load More */}
-        {!isLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-12 text-center"
-          >
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-muted/50 border border-border/50">
-              <span className="text-sm text-muted-foreground">
-                📊 Showing {filteredArticles.length} of {mockArticles.length} trending stories
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-4">
-              More stories are added automatically as they trend
-            </p>
-          </motion.div>
+            {/* Infinite Scroll Trigger */}
+            <InfiniteScrollTrigger
+              onLoadMore={loadMore}
+              hasMore={hasMore}
+              isLoading={isLoadingMore}
+              displayedCount={displayedCount}
+              totalCount={totalCount}
+            />
+          </>
         )}
       </main>
 

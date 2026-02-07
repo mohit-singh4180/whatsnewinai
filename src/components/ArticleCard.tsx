@@ -1,14 +1,14 @@
 import { motion } from 'framer-motion';
 import { Flame, MessageCircle, Share2, Clock, ExternalLink, Bookmark, Sparkles } from 'lucide-react';
 import { Article } from '@/data/mockArticles';
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 
 interface ArticleCardProps {
   article: Article;
   index: number;
 }
 
-const ArticleCard = ({ article, index }: ArticleCardProps) => {
+const ArticleCard = forwardRef<HTMLElement, ArticleCardProps>(({ article, index }, ref) => {
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   const formatEngagement = (num: number) => {
@@ -39,9 +39,11 @@ const ArticleCard = ({ article, index }: ArticleCardProps) => {
 
   return (
     <motion.article
+      ref={ref}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.3 }}
+      transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.3 }}
+      layout
       className="group relative glass-card p-6 hover:scale-[1.01] transition-all duration-300"
       whileHover={{
         boxShadow: '0 8px 40px -8px hsl(var(--primary) / 0.2)',
@@ -52,7 +54,7 @@ const ArticleCard = ({ article, index }: ArticleCardProps) => {
         className={`absolute -top-3 -left-3 w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-lg ${getRankBadgeStyle(article.rank)}`}
         initial={{ scale: 0, rotate: -180 }}
         animate={{ scale: 1, rotate: 0 }}
-        transition={{ delay: index * 0.05 + 0.2, type: 'spring', stiffness: 200 }}
+        transition={{ delay: Math.min(index * 0.03 + 0.1, 0.4), type: 'spring', stiffness: 200 }}
       >
         #{article.rank}
       </motion.div>
@@ -123,16 +125,13 @@ const ArticleCard = ({ article, index }: ArticleCardProps) => {
         </div>
         <ul className="space-y-2">
           {article.keyInsights.map((insight, i) => (
-            <motion.li
+            <li
               key={i}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 + i * 0.1 }}
               className="flex items-start gap-2 text-sm"
             >
               <span className="text-primary mt-1">•</span>
               <span className="text-muted-foreground">{insight}</span>
-            </motion.li>
+            </li>
           ))}
         </ul>
       </div>
@@ -198,6 +197,8 @@ const ArticleCard = ({ article, index }: ArticleCardProps) => {
       </div>
     </motion.article>
   );
-};
+});
+
+ArticleCard.displayName = 'ArticleCard';
 
 export default ArticleCard;
