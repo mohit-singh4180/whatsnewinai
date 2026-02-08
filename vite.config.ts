@@ -11,11 +11,17 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    // Handle SPA routing - redirect all requests to index.html
+    historyApiFallback: true,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  // Ensure proper SPA routing in preview mode
+  preview: {
+    port: 8080,
   },
 }));
