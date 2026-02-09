@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import Header from '@/components/Header';
 import FilterBar from '@/components/FilterBar';
 import ArticleCard from '@/components/ArticleCard';
@@ -10,6 +11,7 @@ import BackToTop from '@/components/BackToTop';
 import ScrollProgress from '@/components/ScrollProgress';
 import SearchBar from '@/components/SearchBar';
 import InfiniteScrollTrigger from '@/components/InfiniteScrollTrigger';
+import HowToSection from '@/components/HowToSection';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { mockArticles, sources } from '@/data/mockArticles';
 
@@ -38,11 +40,25 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Track if it's the first render (to not show toast on initial load)
+  const isFirstRender = useRef(true);
+
   // Auto-refresh simulation (30 minutes in production, 30 seconds for demo)
   useEffect(() => {
     const interval = setInterval(() => {
       setLastUpdated(new Date());
+      // Show toast notification on refresh (not on first render)
+      if (!isFirstRender.current) {
+        toast.success('Content refreshed!', {
+          description: 'Latest AI news loaded',
+          duration: 3000,
+        });
+      }
     }, 30 * 1000);
+    
+    // Mark first render as complete after initial interval
+    isFirstRender.current = false;
+    
     return () => clearInterval(interval);
   }, []);
 
@@ -247,6 +263,9 @@ const Index = () => {
           </>
         )}
       </main>
+
+      {/* How To Section */}
+      <HowToSection />
 
       <Footer />
       <BackToTop />

@@ -141,14 +141,20 @@
 @layer components {
   /* Glass Card Effect */
   .glass-card {
-    @apply relative overflow-hidden rounded-2xl border border-white/10;
+    @apply relative overflow-visible rounded-3xl border border-white/10;
     background: var(--gradient-card);
     backdrop-filter: blur(20px);
     box-shadow: var(--shadow-card);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
   }
 
   .glass-card:hover {
     box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Glass Card Inner - for content that needs clipping */
+  .glass-card-inner {
+    @apply overflow-hidden rounded-3xl;
   }
 
   /* Glow Effect */
