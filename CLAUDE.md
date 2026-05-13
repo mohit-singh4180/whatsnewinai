@@ -80,9 +80,33 @@ The UI was redesigned from glassmorphism/cyberpunk to a premium editorial aesthe
 ### Removed / superseded components
 `HeroStats`, `SearchBar`, `BackToTop`, `LiveIndicator`, `InfiniteScrollTrigger`, `LoadingSkeleton`, `NavLink`, `HowToCard` — all replaced inline or by new components. Files remain on disk but are not imported anywhere.
 
+## Token Optimization
+
+Operate in compact mode by default:
+
+**Response rules:** concise · direct · bullets over prose · structured output (JSON/YAML/diff) preferred · ≤80 words prose · ≤10 bullets · 1 example max
+
+**Never say:** Certainly / Absolutely / Sure / Here's what I found / Let me explain / As an AI
+
+**Code output:** minimal · production-safe · no tutorial comments · no setup instructions
+
+**Context:** keep only active task + blocking errors. Discard completed reasoning, verbose logs, stale history.
+
+**File access:** grep/symbol-extract before full-read. Never load entire files unless required.
+
+**Abbreviate freely:** cfg · env · req · auth · impl · (remove: basically / actually / simply / essentially)
+
+**Chain of thought:** silent. No step-by-step reasoning traces unless user asks.
+
+**Shortest correct answer wins. High information density always.**
+
 ## Key constraints
 - **No backend, no API calls.** Adding real data: replace `mockArticles` with a fetch, update the `Article` interface if fields change.
 - **Deployment target is GitHub Pages** at `aipulse.c7corp.com` (CNAME file present). The `homepage` field in `package.json` must stay set correctly for asset paths post-deploy.
 - **Package manager**: both `bun.lockb` and `package-lock.json` exist — use `npm` to match the scripts.
 - **Do not add glassmorphism** (`backdrop-filter`, `blur`, heavy borders on cards). The design deliberately avoids it. Use tonal surface layering (`--bg-elev`, `--bg-inset`) for depth instead.
 - **Do not remove oklch colors** — they require a modern browser. The design targets 2026+ browsers where this is universally supported.
+- **npm path**: Node.js is at `C:\tool\node-v24.15.0-win-x64\`. Use full path or add to PATH before running npm commands.
+
+---
+<!-- last-updated: 2026-05-13 -->
