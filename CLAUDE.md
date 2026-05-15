@@ -609,4 +609,4 @@ NEXT_PUBLIC_SITE_URL=https://aipulse.c7corp.com
 - **Glassmorphism only on header + `.ai-panel`** — not on article cards
 
 ---
-<!-- last-updated: 2026-05-15 -->
+<!-- last-updated: 2026-05-16 -->

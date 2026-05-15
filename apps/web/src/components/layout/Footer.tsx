@@ -31,8 +31,16 @@ export default function Footer() {
           <div>
             <h4 style={{ fontFamily: 'Geist Mono, monospace', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--ink-4)', marginBottom: '0.75rem' }}>Coverage</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {['Models', 'Agents', 'Research', 'Industry', 'Chips', 'Regulation', 'Robotics'].map(cat => (
-                <Link key={cat} href={`/category/${cat.toLowerCase()}`} style={{ fontSize: '0.82rem', color: 'var(--ink-3)', textDecoration: 'none' }}>{cat}</Link>
+              {[
+                { label: 'Models', slug: 'ml' },
+                { label: 'Agents', slug: 'agents' },
+                { label: 'Research', slug: 'research' },
+                { label: 'Industry', slug: 'industry' },
+                { label: 'Chips', slug: 'chips' },
+                { label: 'Regulation', slug: 'regulation' },
+                { label: 'Robotics', slug: 'robotics' },
+              ].map(cat => (
+                <Link key={cat.slug} href={`/category/${cat.slug}`} style={{ fontSize: '0.82rem', color: 'var(--ink-3)', textDecoration: 'none', cursor: 'pointer' }}>{cat.label}</Link>
               ))}
             </div>
           </div>

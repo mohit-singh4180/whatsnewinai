@@ -6,9 +6,6 @@ const config: NextConfig = {
       { protocol: 'https', hostname: '**' },
     ],
   },
-  experimental: {
-    ppr: true,
-  },
 }
 
 export default config
