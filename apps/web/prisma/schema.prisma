@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Source {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  url         String
+  feedUrl     String?
+  isActive    Boolean   @default(true)
+  lastFetched DateTime?
+  articles    Article[]
+  createdAt   DateTime  @default(now())
+}
+
+model Article {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  punchyTitle     String?
+  originalUrl     String    @unique
+  sourceId        String
+  source          Source    @relation(fields: [sourceId], references: [id])
+  author          String?
+  publishedAt     DateTime
+  ingestedAt      DateTime  @default(now())
+  summary         String?
+  punchySummary   String?
+  keyInsights     String[]
+  powerQuote      String?
+  tldr            String?
+  whyItMatters    String?
+  developerImpact String?
+  businessImpact  String?
+  impactScore     Float     @default(0)
+  metaTitle       String?
+  metaDescription String?
+  ogImageUrl      String?
+  category        String    @default("industry")
+  tags            String[]
+  trendingScore   Float     @default(0)
+  isNew           Boolean   @default(true)
+  isTrending      Boolean   @default(false)
+  isHot           Boolean   @default(false)
+  viewCount       Int       @default(0)
+  shareCount      Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([publishedAt(sort: Desc)])
+  @@index([trendingScore(sort: Desc)])
+  @@index([category])
+}
+
+model Subscriber {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  isConfirmed Boolean  @default(false)
+  token       String   @unique @default(cuid())
+  createdAt   DateTime @default(now())
+}
+
+model IngestLog {
+  id            String   @id @default(cuid())
+  sourceId      String
+  status        String
+  articlesAdded Int      @default(0)
+  error         String?
+  runAt         DateTime @default(now())
+}

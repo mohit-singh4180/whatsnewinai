@@ -1,0 +1,336 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Newsreader:ital,wght@1,400;1,500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design Tokens ─── */
+:root {
+  --bg: oklch(0.99 0 0);
+  --bg-elev: oklch(0.97 0 0);
+  --bg-panel: oklch(0.945 0.004 250);
+  --bg-inset: oklch(0.91 0.006 250);
+  --ink: oklch(0.12 0 0);
+  --ink-2: oklch(0.35 0 0);
+  --ink-3: oklch(0.55 0 0);
+  --ink-4: oklch(0.72 0 0);
+  --accent: oklch(0.58 0.22 255);
+  --accent-ink: oklch(0.22 0.12 255);
+  --accent-soft: oklch(0.93 0.06 255);
+  --violet: oklch(0.55 0.22 295);
+  --emerald: oklch(0.55 0.17 160);
+  --coral: oklch(0.62 0.22 30);
+  --gold: oklch(0.68 0.16 75);
+  --hairline: oklch(0.88 0 0);
+  --hairline-strong: oklch(0.78 0 0);
+  --radius: 0.75rem;
+  --header-h: 64px;
+  --shell-pad: clamp(1rem, 4vw, 2rem);
+}
+
+[data-theme="dark"] {
+  --bg: oklch(0.09 0.008 255);
+  --bg-elev: oklch(0.12 0.008 255);
+  --bg-panel: oklch(0.155 0.010 255);
+  --bg-inset: oklch(0.19 0.010 255);
+  --ink: oklch(0.96 0 0);
+  --ink-2: oklch(0.75 0 0);
+  --ink-3: oklch(0.55 0 0);
+  --ink-4: oklch(0.38 0 0);
+  --hairline: oklch(0.22 0.008 255);
+  --hairline-strong: oklch(0.30 0.008 255);
+  --accent-soft: oklch(0.20 0.08 255);
+  --accent: oklch(0.62 0.22 255);
+}
+
+/* ─── Base ─── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+::selection { background: var(--accent-soft); color: var(--accent-ink); }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--hairline-strong); border-radius: 99px; }
+
+/* ─── Layout ─── */
+.shell {
+  max-width: 1360px;
+  margin-inline: auto;
+  padding-inline: var(--shell-pad);
+}
+
+/* ─── Header ─── */
+.hdr-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 0.75rem var(--shell-pad);
+  pointer-events: none;
+}
+
+.hdr {
+  max-width: 1100px;
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: color-mix(in oklch, var(--bg-panel) 85%, transparent);
+  border: 1px solid var(--hairline);
+  border-radius: 99px;
+  padding: 0.5rem 1.25rem;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  pointer-events: all;
+  transition: padding 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 12px -4px oklch(0 0 0 / 0.06), 0 0 0 0.5px var(--hairline);
+}
+
+.hdr.compact {
+  padding: 0.35rem 1rem;
+  box-shadow: 0 2px 20px -6px oklch(0 0 0 / 0.12), 0 0 0 0.5px var(--hairline);
+}
+
+/* ─── Page chrome ─── */
+.page-body {
+  padding-top: calc(var(--header-h) + 2rem);
+  min-height: 100vh;
+}
+
+/* ─── Featured article grid ─── */
+.feat {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr 300px;
+  gap: 2rem;
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+@media (max-width: 900px) {
+  .feat { grid-template-columns: 2rem 1fr; }
+  .feat-aside { display: none; }
+}
+
+/* ─── Article row ─── */
+.row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr 180px;
+  gap: 1.5rem;
+  align-items: start;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--hairline);
+  transition: background 0.15s;
+}
+
+.row:hover { background: var(--bg-elev); margin-inline: -0.75rem; padding-inline: 0.75rem; border-radius: var(--radius); }
+
+@media (max-width: 700px) {
+  .row { grid-template-columns: 2rem 1fr; }
+  .row-meta { display: none; }
+}
+
+/* ─── Rank number ─── */
+.rank {
+  font-family: 'Geist Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink-4);
+  line-height: 1;
+  padding-top: 0.2rem;
+}
+
+.rank.hot { color: var(--coral); }
+.rank.trending { color: var(--accent); }
+
+/* ─── Filter / Segments ─── */
+.seg {
+  position: relative;
+  display: inline-flex;
+  background: var(--bg-inset);
+  border-radius: 99px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.seg-btn {
+  position: relative;
+  z-index: 1;
+  padding: 0.3rem 0.9rem;
+  border-radius: 99px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+
+.seg-btn.active { color: var(--ink); }
+
+.seg-pill {
+  position: absolute;
+  background: var(--bg);
+  border-radius: 99px;
+  box-shadow: 0 1px 4px -1px oklch(0 0 0 / 0.12);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+}
+
+/* ─── Category chips ─── */
+.chips-wrap {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.chips-wrap::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex-shrink: 0;
+  padding: 0.28rem 0.85rem;
+  border-radius: 99px;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  background: var(--bg-inset);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.chip:hover { color: var(--ink); border-color: var(--hairline); }
+.chip.active { background: var(--accent); color: #fff; border-color: transparent; }
+
+/* ─── AI Insight Panel ─── */
+.ai-panel {
+  background: color-mix(in oklch, var(--bg-panel) 90%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+.ai-panel-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+
+/* ─── Impact score badge ─── */
+.impact-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  border: 1px solid currentColor;
+}
+
+/* ─── Status flags ─── */
+.flag {
+  display: inline-block;
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.flag-new { background: var(--accent-soft); color: var(--accent-ink); }
+.flag-hot { background: oklch(0.95 0.06 30); color: var(--coral); }
+.flag-trending { background: var(--accent-soft); color: var(--accent); }
+
+/* ─── Guide card ─── */
+.guide {
+  background: var(--bg-elev);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.guide:hover {
+  border-color: var(--hairline-strong);
+  box-shadow: 0 4px 16px -4px oklch(0 0 0 / 0.08);
+}
+
+/* ─── Atmosphere glow ─── */
+.bg-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% -10%, oklch(0.58 0.22 255 / 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 110%, oklch(0.55 0.22 295 / 0.04) 0%, transparent 60%);
+}
+
+/* ─── Footer marquee ─── */
+.marquee-track {
+  animation: marquee 35s linear infinite;
+  display: flex;
+  gap: 3rem;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ─── Bento grid ─── */
+.bento {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: 80px;
+  gap: 1rem;
+}
+
+/* ─── Power quote ─── */
+.power-quote {
+  font-family: 'Newsreader', Georgia, serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  border-left: 2px solid var(--accent);
+  padding-left: 1rem;
+  margin: 1rem 0;
+}
+
+/* ─── Pulse dot ─── */
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+.ping { animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; }
