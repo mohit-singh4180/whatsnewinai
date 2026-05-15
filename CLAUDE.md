@@ -483,6 +483,18 @@ over:
 # FINAL DIRECTIVE
 
 Shortest correct answer wins.
+## Git Commit Format
+
+All commits must follow this exact format — no exceptions:
+```
+mohit_sing Ver_{N}_ <short description>
+```
+- `N` = incrementing version number (1, 2, 3, ...)
+- No `Co-Authored-By` lines
+- No conventional commit prefixes (feat:, fix:, chore:)
+
+Example: `mohit_sing Ver_5_ fix broken tag links and header search`
+
 ## Commands
 
 ```bash
