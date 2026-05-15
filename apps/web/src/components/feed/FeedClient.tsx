@@ -1,10 +1,9 @@
 'use client'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import FilterBar from './FilterBar'
 import TrendingRail from './TrendingRail'
 import { FeaturedCard } from './ArticleCard'
 import ArticleCard from './ArticleCard'
-import CommandPalette from './CommandPalette'
 import type { Article, Category, SortOption } from '@/types'
 
 interface Props {
@@ -15,19 +14,9 @@ interface Props {
 export default function FeedClient({ articles, defaultCategory = 'all' }: Props) {
   const [category, setCategory] = useState<Category>(defaultCategory)
   const [sort, setSort] = useState<SortOption>('trending')
-  const [paletteOpen, setPaletteOpen] = useState(false)
   const [shown, setShown] = useState(20)
 
-  useEffect(() => {
-    const fn = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault()
-        setPaletteOpen(p => !p)
-      }
-    }
-    window.addEventListener('keydown', fn)
-    return () => window.removeEventListener('keydown', fn)
-  }, [])
+  // Cmd+K is handled globally by Header — no duplicate listener here
 
   const filtered = useMemo(() => {
     let result = category === 'all' ? articles : articles.filter(a => a.category === category)
@@ -43,7 +32,6 @@ export default function FeedClient({ articles, defaultCategory = 'all' }: Props)
 
   return (
     <>
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} articles={articles} />
       <TrendingRail />
       <FilterBar category={category} sort={sort} onCategory={(c) => { setCategory(c); setShown(20) }} onSort={setSort} />
 
