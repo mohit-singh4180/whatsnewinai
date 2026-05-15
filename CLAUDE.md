@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # CLAUDE.md
 # Ultra Low-Token Operating Profile
 # Version: SV-OPT-5
@@ -35,7 +36,7 @@ Target compression ratio:
 5. No markdown tables unless critical.
 6. No repeated context.
 7. No paraphrasing user input.
-8. No “Certainly”, “Sure”, “Absolutely”.
+8. No "Certainly", "Sure", "Absolutely".
 9. No safety disclaimers unless mandatory.
 10. Avoid full sentences when fragments work.
 
@@ -483,6 +484,7 @@ over:
 # FINAL DIRECTIVE
 
 Shortest correct answer wins.
+
 ## Git Commit Format
 
 All commits must follow this exact format — no exceptions:
@@ -493,7 +495,7 @@ mohit_sing Ver_{N}_ <short description>
 - No `Co-Authored-By` lines
 - No conventional commit prefixes (feat:, fix:, chore:)
 
-Example: `mohit_sing Ver_5_ fix broken tag links and header search`
+Example: `mohit_sing Ver_9_ fix broken tag links and update docs`
 
 ## Commands
 
@@ -508,11 +510,6 @@ C:\tool\node-v24.15.0-win-x64\npm.cmd --prefix apps/web run db:push     # Push s
 C:\tool\node-v24.15.0-win-x64\npm.cmd --prefix apps/web run db:migrate  # Run migrations
 C:\tool\node-v24.15.0-win-x64\npm.cmd --prefix apps/web run db:studio   # Prisma Studio UI
 
-# Legacy Vite app (repo root) — still present
-npm run dev          # Vite dev server (port 8080)
-npm run build        # Vite production build
-npm run deploy       # Build + deploy to GitHub Pages
-
 # Trigger article ingest
 curl -X POST http://localhost:3000/api/ingest -H "Authorization: Bearer <INGEST_SECRET>"
 ```
@@ -521,92 +518,86 @@ curl -X POST http://localhost:3000/api/ingest -H "Authorization: Bearer <INGEST_
 
 ### Monorepo structure
 ```
-/                       ← Legacy Vite+React app (still deployed to GitHub Pages)
+/                       ← Legacy Vite+React app (GitHub Pages)
 apps/
-  web/                  ← NEW Next.js 15 App Router (primary platform)
+  web/                  ← Next.js 15 App Router (primary)
     src/app/            ← Pages + API routes
     src/components/     ← UI components
-    src/lib/            ← Prisma, Redis, AI, ingest utilities
-    src/types/          ← Shared TypeScript types
+    src/lib/            ← Utilities
+    src/types/          ← Types
     prisma/schema.prisma
 ```
 
 ### Next.js app stack (`apps/web/`)
 - **Framework**: Next.js 15 App Router + React 18 + TypeScript
-- **DB**: PostgreSQL (at `C:\tool\pgsql\bin\`) + Prisma ORM
-- **Cache**: Redis via `ioredis` — `getOrSet(key, ttlSec, fn)` helper in `lib/redis.ts`
-- **AI**: OpenAI (`gpt-4o-mini` for summaries, `text-embedding-3-small` for embeddings)
-- **Ingest**: RSS feeds via `rss-parser`, HTML scraping via `cheerio`
-- **Email**: Resend API for newsletter
+- **DB**: PostgreSQL + Prisma ORM (optional fallback)
+- **Cache**: Redis via ioredis (optional fallback)
+- **AI**: OpenAI (gpt-4o-mini, text-embedding-3-small)
+- **Ingest**: RSS feeds via rss-parser, HTML via cheerio
+- **Scheduler**: node-cron for hourly ingest
+- **Styling**: Custom CSS (oklch colors, no Tailwind utilities)
 
 ### Data flow
-1. `POST /api/ingest` (cron every 30 min) → parse RSS → deduplicate → AI enrich → upsert Prisma → invalidate Redis
-2. `GET /` (ISR 5 min) → Prisma query → Redis cache → Server Component render
-3. Fallback: if DB unavailable, `getMockArticles()` from `src/lib/mock-data.ts` provides 10 pre-built articles
+1. `POST /api/ingest` (hourly) → parse RSS → deduplicate → AI enrich → Prisma → Redis
+2. `GET /` (ISR 5min) → Prisma query → Redis cache → render
+3. Fallback: `getMockArticles()` (25 pre-built articles)
 
 ### Key files
-- `apps/web/src/lib/mock-data.ts` — 10 rich Article objects used as fallback when DB is down
-- `apps/web/src/lib/ai/prompts.ts` — all AI prompt templates (tune here to change AI output quality)
-- `apps/web/src/lib/ingest/sources.ts` — RSS feed registry (add/remove sources here)
-- `apps/web/prisma/schema.prisma` — DB schema (Article, Source, Subscriber, IngestLog)
-- `apps/web/src/types/index.ts` — canonical `Article` type + `CATEGORIES` + `SortOption`
+- `src/lib/mock-data.ts` — 25 Article objects (fallback)
+- `src/lib/scheduler.ts` — Hourly cron via node-cron
+- `src/lib/ai/prompts.ts` — AI prompt templates
+- `src/lib/ingest/sources.ts` — RSS feed registry
+- `prisma/schema.prisma` — DB schema
+- `src/types/index.ts` — Article type + CATEGORIES
 
-### Design system (same tokens, new app)
-**Fonts**: Geist (UI), Geist Mono (meta/mono), Newsreader (pull-quotes)
-**Color tokens** in `apps/web/src/app/globals.css` `:root` (oklch):
-- `--bg/--bg-elev/--bg-panel/--bg-inset` — surface hierarchy
-- `--ink/--ink-2/--ink-3/--ink-4` — text hierarchy  
-- `--accent` — cyan-blue · `--coral` — hot/alert · `--gold` — business · `--emerald` — success
-- `--hairline/--hairline-strong` — borders
-**Theme**: `data-theme="dark"` on `<html>`, localStorage key `pulse-theme`
-**CSS classes**: `.shell`, `.hdr/.hdr-wrap`, `.feat`, `.row`, `.seg/.seg-pill`, `.chip`, `.ai-panel`, `.impact-badge`, `.flag`, `.bg-atmosphere` — all in `globals.css`
+### Design system
+**Fonts**: Geist (UI), Geist Mono (meta), Newsreader (quotes)
+**Colors** (oklch): `--bg`, `--bg-elev`, `--bg-panel`, `--bg-inset`, `--ink`, `--accent`, `--coral`, `--gold`, `--emerald`
+**Theme**: `data-theme="dark"` on `<html>`, persist to localStorage `pulse-theme`
+**CSS classes**: `.shell`, `.hdr`, `.feat`, `.row`, `.seg`, `.chip`, `.bg-atmosphere`
 
-### Component map (`apps/web/src/components/`)
+### Component map
 | Component | Purpose |
 |---|---|
-| `layout/Header.tsx` | Floating pill nav, compact on scroll, Cmd-K, theme toggle |
-| `layout/Footer.tsx` | Source marquee + 3-col grid |
-| `ScrollProgress.tsx` | 2px scaleX progress bar |
-| `ThemeScript.tsx` | `useTheme()` hook, FOUC-prevention inline script |
-| `feed/ArticleCard.tsx` | `FeaturedCard` (rank 1, 3-col editorial) + default row card |
-| `feed/FeedClient.tsx` | Client: filtering, sorting, pagination, Cmd-K registration |
-| `feed/FilterBar.tsx` | Segmented sort + category chips |
-| `feed/CommandPalette.tsx` | Cmd-K modal, keyboard nav, live search |
-| `feed/TrendingRail.tsx` | Horizontal topic pills |
+| `Header.tsx` | Floating header; Cmd+K; theme toggle |
+| `ScrollProgress.tsx` | Progress bar |
+| `ArticleCard.tsx` | Featured + default cards |
+| `CommandPalette.tsx` | Cmd+K modal |
+| `FilterBar.tsx` | Sort + category filter |
+| `TrendingRail.tsx` | Topic pills |
+| `Footer.tsx` | Sources + links + newsletter |
 
 ### Pages
-- `/` — feed with featured + ranked articles
-- `/article/[slug]` — detail page with AI insight panel, related articles
-- `/category/[slug]` — filtered feed
-- `/search` — live client-side search
-- `/newsletter` — subscribe form
-- `/admin` — dashboard (stats, ingest trigger, article table)
-- `/admin/feeds` — RSS source management + manual ingest trigger
-- `/admin/articles` — article management table
+- `/` — feed
+- `/article/[slug]` — detail
+- `/category/[slug]` — filtered
+- `/tag/[slug]` — tag filter
+- `/newsletter` — subscribe
+- `/search` — client search
 
 ### API routes
-- `POST /api/ingest` — RSS ingestion pipeline (requires `Authorization: Bearer INGEST_SECRET`)
-- `GET /api/articles` — paginated feed (`?category=ml&sort=trending&page=1&limit=20`)
-- `POST /api/newsletter/subscribe` — email subscription
+- `POST /api/ingest` — RSS ingest (requires bearer auth)
+- `GET /api/articles` — paginated feed
+- `POST /api/newsletter/subscribe` — email
 
-### Environment setup (`apps/web/.env.local`)
+### Environment (`apps/web/.env.local`)
 ```
 DATABASE_URL=postgresql://postgres:password@localhost:5432/aipulse
 REDIS_URL=redis://localhost:6379
-OPENAI_API_KEY=
+OPENAI_API_KEY=sk-...
 INGEST_SECRET=your-secret
 ADMIN_SECRET=your-admin-secret
 NEXT_PUBLIC_SITE_URL=https://aipulse.c7corp.com
 ```
 
 ## Key constraints
-- **Next.js app in `apps/web/`** — all new development goes here; legacy Vite root is kept for GitHub Pages fallback
-- **DB optional** — app falls back to `getMockArticles()` if Prisma/PostgreSQL unavailable; works without DB for UI dev
-- **Node.js**: `C:\tool\node-v24.15.0-win-x64\` — use full path, not in system PATH
-- **PostgreSQL**: `C:\tool\pgsql\bin\` — `psql.exe`, `postgres.exe`; DB name `aipulse`
-- **Do not remove oklch colors** — targets 2026+ browsers
-- **CSS not Tailwind** for component styling — extend `globals.css` with custom classes
-- **Glassmorphism only on header + `.ai-panel`** — not on article cards
+- **Next.js in `apps/web/`** — new development here
+- **DB optional** — works without database
+- **Node.js**: `C:\tool\node-v24.15.0-win-x64\` (full path required)
+- **No oklch removal** — required for 2026+ browsers
+- **CSS not Tailwind** — custom classes in globals.css
+- **No glassmorphism** — use tonal layering instead
+- **Link routing** — use Next.js Link, match category slugs
 
 ---
 <!-- last-updated: 2026-05-16 -->
