@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "dev",
-      "runtimeExecutable": "npm",
+      "runtimeExecutable": "C:\\tool\\node-v24.15.0-win-x64\\npm.cmd",
       "runtimeArgs": ["run", "dev"],
       "port": 5173
     }
